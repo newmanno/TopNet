@@ -11,8 +11,7 @@
 	- import_network_data.py: Imports a network file consisting of node correlations and outputs a pickled file of a networkx graph
 	- calc_network_properties.py: Takes the output from import_network_data.py and performs analyses on the network, which are detailed below
 	
-######################################
-import_network_data.py
+** import_network_data.py
 
 Purpose:
 This script takes a network file consisting of node correlations and outputs a pickled file of a networkx graph
@@ -49,11 +48,11 @@ Example input:
 	python import_network_data.py <network file>
 	
 Outputs:
-	pickled file of the networkx graph, including each edge's abs(rho coefficient)
+	- pickled file of the networkx graph, including each edge's abs(rho coefficient)
+	- a second pickled file that includes the values needed to calculate deviation from expected
 	
 
-######################################
-calc_network_properties.py
+** calc_network_properties.py
 
 Purpose:
 	Takes the output from import_network_data.py and performs analyses on the network
@@ -93,19 +92,26 @@ Description:
 			- Pickled network file (output of import_network_data.py)
 			
 		Optional
-			--PUC	-	
+			--frag	-	Flag; Do you want to compute node fragmentation centrality? (Significantly increases run-time)
+			--bibc	-	Flag; Do you want to compute BiBC? (Significantly increases run-time)
+			--bibc_groups	-	choices are 'node_types' or 'modularity'; What to compute BiBC on, either distinct groups or on the two most modular regions of the network
+			--bibc_calc_type	-	choices are 'rbc' or 'bibc'; Would you like to normalize based on amount of nodes in each group (rbc) or not (bibc)?
+			--node_map	-	Required if node_types is specified for --bibc_groups. CSV of nodes and their types (i.e. otu, pheno, gene, etc.)
+			--node_groups	-	Required if node_types is specified for --bibc_groups. Its the two groups of nodes to calculate BiBC/RBC on
 
 	Notes: 
 		BiBC will not be calculated if the network size is either too small or if two separate groups are identified in the network
 
+	Example file:
+		Node mapping file:
+			GAPDH, gene
+			EGFR, gene
+			TP53, gene
+			ASV1, micro
+			ASV2, micro
+			ASV5, micro
 
-
-
-
-
-
-
-
+			* Where 'gene' and 'micro' would be the arguments used for node_groups. No headers are used for this file.
  
 	
 	

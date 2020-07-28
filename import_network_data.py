@@ -108,8 +108,6 @@ print(G.degree(weight='weight'))
 
 # Save to picklke
 pickle_out = open(net_file_trimmed + ".pickle", "wb")
-pickle.dump(G, pickle_out)
-pickle_out.close()
 
 ################################################################################
  ##################### Calculate deviation from ideal #########################
@@ -173,7 +171,6 @@ dens_dev = (abs(obs_edge_node_ratio - expec_edge_node_ratio)) / expec_edge_node_
 # Calculate PUC (the proportion of edges that do not follow the expected direction)
 puc = puc_noncompliant / nx.number_of_edges(G)
 
-pickle_dev = open(net_file_trimmed + "_dev_from_ideal.pickle", "wb")
 dev_dict = {}
 dev_dict['OBSERVED_number_positive_nodes'] = pos_nodes
 dev_dict['OBSERVED_number_negative_nodes'] = neg_nodes
@@ -197,9 +194,11 @@ dev_dict['PUC'] = round(puc, 2)
 dev_dict['PUC_noncompliant_edge_number'] = round(puc_noncompliant, 2)
 dev_dict['PUC_compliant_edge_number'] = round(puc_compliant, 2)
 
+#pickle.dump(G, pickle_out)
+pickle_list = [G, dev_dict]
+pickle.dump(pickle_list, pickle_out)
+pickle_out.close()
 
-pickle.dump(dev_dict, pickle_dev)
-pickle_dev.close()
 
 print("Successfully saved to pickle. Now run calc_network_properties.py")
 

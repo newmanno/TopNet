@@ -1,18 +1,28 @@
-# Takes as input the pickled network file created from import_network_data.py and calculates various node and network properties for it
+"""
+Author: Nolan K Newman <newmanno@oregonstate.edu>
+Last updated: 7/28/20
 
-# Example usage:
-#    python calc_network_properties_w_argparse.py <pickled network file>
-#    --bibc [required] --node_map <node map csv> --node_type1 <type> --node_type2 <type>
+Written in Python v3.5.3
 
-#    Developer note: v2 - As of 9/29/19, the code no longer relies strictly on positional arguments and instead uses an argparser
-#    Developer note: v2.1 - As of 2/19/20, the script now has flags to specify whether PUC and BiBC should be calculated. Also added
-#                   eigenvalue centrality as another node property. On top of that, this version now incorporates positive    
-#                   and negative ratios of edges in the giant component now.
-#    Developer note: v2.4 - As of 6/29/20, I removed the dictionary class since I don't think it served much of a purpose. Now I just
-#                   add to and modify dictionaries like normal. Additionally, I added an argument where the user can specify whether 
-#                   they would like to calculate node fragmentation. This was needed due to how time intensive that property is to 
-#                   calculate.
-#    Developer note: v2.5 - As of 7/17/20, infomap was added as an option to maximize modularity
+Description:
+Takes as input the pickled network file created from import_network_data.py and calculates various node and network properties for it
+
+Example usage:
+python calc_network_properties_w_argparse.py <pickled file> --bibc --bibc_groups node_types --bibc_calc_type rbc --node_map <node map csv> --node_groups gene pheno
+
+Developer note: As of 9/29/19, the code no longer relies strictly on positional arguments and instead uses an argparser
+Developer note: As of 2/19/20, the script now has flags to specify whether PUC and BiBC should be calculated. Also added
+                eigenvalue centrality as another node property. On top of that, this version now incorporates positive    
+                and negative ratios of edges in the giant component now.
+Developer note: As of 6/29/20, I removed the dictionary class since I don't think it served much of a purpose. Now I just
+                add to and modify dictionaries like normal. Additionally, I added an argument where the user can specify whether 
+                they would like to calculate node fragmentation. This was needed due to how time intensive that property is to 
+                calculate.
+Developer note: As of 7/17/20, infomap was added as an option to maximize modularity
+Developer note: As of 7/28/20, the code takes a pickled input file of both a networkx graph object and a dictionary of deviation from expected values, not calculated
+                with import_network_data.py
+"""
+
 import pickle
 import networkx as nx
 import numpy as np 
@@ -34,15 +44,9 @@ parser = argparse.ArgumentParser(description='Example: python calc_network_prope
 # Required args
 # pickle output from import_network_data2.py
 parser.add_argument('pickle', help = 'The pickle file created with import_network_data.py')
-parser.add_argument('dev', help = 'The deviation from expected file created with import_network_data.py')
 
 # Flags and optional arguments
-parser.add_argument("--PUC", help = 'Flag; Do you want to calculate PUC?', action = 'store_true') # By default flag will not be set unless user asks for it
-parser.add_argument("--PUC_file", help = 'The PUC file created from create-network.R; required if --PUC is set')
-parser.add_argument("--posneg", help = 'The file created in import_network_data_v2.1.py that contains the number of positive and negative nodes')
-
 parser.add_argument("--frag", help = 'Flag; Do you want to compute node fragmentation centrality? (Significantly increases run-time)', action = 'store_true')
-
 
 parser.add_argument("--bibc", help = 'Flag; Do you want to compute Bi-BC? (Significantly increases run-time)', action = 'store_true')
 parser.add_argument("--bibc_groups", choices = ['node_types', 'modularity'], help = 'What to compute BiBC on, either distinct groups or on the two most modular regions of the network')
@@ -51,10 +55,6 @@ parser.add_argument("--node_map", help = 'Required if node_types is specified fo
 parser.add_argument("--node_groups", nargs = 2, help = 'Required if node_types is specified for --bibc_groups. Its the two groups of nodes to calculate BiBC/RBC on')
 
 args = parser.parse_args()
-
-# Set command arguments as variables
-pickle_file = args.pickle
-dev_file = args.dev
 
 if args.bibc:
     if args.bibc_groups == "node_types":
@@ -72,9 +72,12 @@ if args.PUC:
     
 if __name__ == '__main__':
 
-    # Read in the network pickle file
-    G = open(pickle_file, "rb")
-    G = pickle.load(G)
+    # Unpack the pickle
+    p = open(args.pickle, "rb")
+    p = pickle.load(p)
+    print(p)
+    G = p[0] # Graph stored in first position of pickle
+    dev_dict = p[1] # Deviation dictionary stored in second position of pickle
     
     # Function that calculates the number of second neighbors for each node
     def second_neighbors(G,n):
@@ -257,20 +260,6 @@ if __name__ == '__main__':
             dF = 1
         return dF
 
-    #Extract PUC from input file
-
-    # Only if PUC flag is set, extract only the last row of the PUC file, which will be the percentage that is 
-    # calculated with create_network.R
-    if args.PUC:
-        with open(PUC_file) as csvfile:
-                readCSV = csv.reader(csvfile, delimiter = ',')
-                for row in readCSV:
-                     rho = ','.join(row)
-
-        # so many rows
-        rowrowrowurboat = rho.split("=")
-        PUC_value = rowrowrowurboat[1]
-
 # =============================================================================
 #     def infomap_partition(G,n_mod=0):
 #         '''
@@ -306,7 +295,9 @@ if __name__ == '__main__':
     ######################## Calculate network properties ##########################
     ################################################################################
 
-    with open(pickle_file+"_properties.txt", "w") as file:
+    network_name = args.pickle[:-7]
+
+    with open(network_name + "_properties.txt", "w") as file:
         #------------------------------------------------#
         ###             Network properties             ###
         #------------------------------------------------#
@@ -321,18 +312,6 @@ if __name__ == '__main__':
         nedges = nx.number_of_edges(G)
         nedges_str = str(nx.number_of_edges(G))
         file.write("Number_of_edges\t" + nedges_str + "\n")
-
-        ### Ratio of positive to negative correlations ###
-        pos_neg_ratio_file = args.posneg
-        print(pos_neg_ratio_file)
-        #for f in pos_neg_ratio_file:
-        #    file2 = open(f).readlines()
-        #    pos_edges = file2[0]
-        #    neg_edges = file2[1]
-        #    ratio = file2[3]
-        #file.write(pos_edges)
-        #file.write(neg_edges)
-        #file.write(ratio)
 
         ### Mean degree ###
         mean_degree = str((2*nedges)/nnodes)
@@ -405,11 +384,6 @@ if __name__ == '__main__':
         degree_assortativity = nx.degree_assortativity_coefficient(G)
         file.write("Degree_assortativity\t" + str(round(degree_assortativity, 5)) + "\n") 
         
-        ### PUC (extracted from PUC-output file above) ###
-        if args.PUC:    
-            file.write("PUC\t " + str(PUC_value) + "\n")
-            file.write("\n")
-
         ### Network fragmentation ###
         '''
             Obtained from Borgatti's key player problem paper, equation 3
@@ -428,11 +402,8 @@ if __name__ == '__main__':
         
         # Deviation from an ideal (PUC-compliant), complete graph
         file.write("### Deviations from an ideal graph ###\t\n")
-        deviation = open(dev_file, "rb")
-        deviation = pickle.load(deviation)
-        print(deviation)
-        for key in sorted(deviation.keys(), reverse = True):
-            file.write(key + "\t" + str(deviation[key]) + "\n")
+        for key in sorted(dev_dict.keys(), reverse = True):
+            file.write(key + "\t" + str(dev_dict[key]) + "\n")
         
         ################################################################################
         ########################## Calculate node properties ###########################
