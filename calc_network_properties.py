@@ -29,7 +29,7 @@ import copy
 from infomap import Infomap
 
 ####### Get user input ########
-parser = argparse.ArgumentParser(description='Example: python calc_network_properties_w_argparse.py <pickled network file> <PUC file> --bibc --bibc_calc_type bibc --node_map <node map csv> --node_type1 <type> --node_type2 <type>')
+parser = argparse.ArgumentParser(description='Example: python calc_network_properties_w_argparse.py <pickled network file> --bibc --bibc_calc_type bibc --node_map <node map csv> --node_type1 <type> --node_type2 <type>')
 
 # Required args
 # pickle output from import_network_data2.py
