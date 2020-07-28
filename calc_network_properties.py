@@ -1,18 +1,28 @@
-# Takes as input the pickled network file created from import_network_data.py and calculates various node and network properties for it
+"""
+Author: Nolan K Newman <newmanno@oregonstate.edu>
+Last updated: 7/28/20
 
-# Example usage:
-#    python calc_network_properties_w_argparse.py <pickled network file>
-#    --bibc [required] --node_map <node map csv> --node_type1 <type> --node_type2 <type>
+Written in Python v3.5.3
 
-#    Developer note: v2 - As of 9/29/19, the code no longer relies strictly on positional arguments and instead uses an argparser
-#    Developer note: v2.1 - As of 2/19/20, the script now has flags to specify whether PUC and BiBC should be calculated. Also added
-#                   eigenvalue centrality as another node property. On top of that, this version now incorporates positive    
-#                   and negative ratios of edges in the giant component now.
-#    Developer note: v2.4 - As of 6/29/20, I removed the dictionary class since I don't think it served much of a purpose. Now I just
-#                   add to and modify dictionaries like normal. Additionally, I added an argument where the user can specify whether 
-#                   they would like to calculate node fragmentation. This was needed due to how time intensive that property is to 
-#                   calculate.
-#    Developer note: v2.5 - As of 7/17/20, infomap was added as an option to maximize modularity
+Description:
+Takes as input the pickled network file created from import_network_data.py and calculates various node and network properties for it
+
+Example usage:
+python calc_network_properties_w_argparse.py <pickled file> --bibc --bibc_groups node_types --bibc_calc_type rbc --node_map <node map csv> --node_groups gene pheno
+
+Developer note: As of 9/29/19, the code no longer relies strictly on positional arguments and instead uses an argparser
+Developer note: As of 2/19/20, the script now has flags to specify whether PUC and BiBC should be calculated. Also added
+                eigenvalue centrality as another node property. On top of that, this version now incorporates positive    
+                and negative ratios of edges in the giant component now.
+Developer note: As of 6/29/20, I removed the dictionary class since I don't think it served much of a purpose. Now I just
+                add to and modify dictionaries like normal. Additionally, I added an argument where the user can specify whether 
+                they would like to calculate node fragmentation. This was needed due to how time intensive that property is to 
+                calculate.
+Developer note: As of 7/17/20, infomap was added as an option to maximize modularity
+Developer note: As of 7/28/20, the code takes a pickled input file of both a networkx graph object and a dictionary of deviation from expected values, not calculated
+                with import_network_data.py
+"""
+
 import pickle
 import networkx as nx
 import numpy as np 
@@ -26,22 +36,17 @@ from collections import defaultdict
 from networkx import all_shortest_paths
 from collections import OrderedDict
 import copy
-from infomap import Infomap
+#from infomap import Infomap
 
 ####### Get user input ########
 parser = argparse.ArgumentParser(description='Example: python calc_network_properties_w_argparse.py <pickled network file> --bibc --bibc_calc_type bibc --node_map <node map csv> --node_type1 <type> --node_type2 <type>')
 
 # Required args
 # pickle output from import_network_data2.py
-parser.add_argument('pickle', help = 'The pickle file created with import_network_data_v2.1.py')
+parser.add_argument('pickle', help = 'The pickle file created with import_network_data.py')
 
 # Flags and optional arguments
-parser.add_argument("--PUC", help = 'Flag; Do you want to calculate PUC?', action = 'store_true') # By default flag will not be set unless user asks for it
-parser.add_argument("--PUC_file", help = 'The PUC file created from create-network.R; required if --PUC is set')
-parser.add_argument("--posneg", help = 'The file created in import_network_data_v2.1.py that contains the number of positive and negative nodes')
-
 parser.add_argument("--frag", help = 'Flag; Do you want to compute node fragmentation centrality? (Significantly increases run-time)', action = 'store_true')
-
 
 parser.add_argument("--bibc", help = 'Flag; Do you want to compute Bi-BC? (Significantly increases run-time)', action = 'store_true')
 parser.add_argument("--bibc_groups", choices = ['node_types', 'modularity'], help = 'What to compute BiBC on, either distinct groups or on the two most modular regions of the network')
@@ -50,9 +55,6 @@ parser.add_argument("--node_map", help = 'Required if node_types is specified fo
 parser.add_argument("--node_groups", nargs = 2, help = 'Required if node_types is specified for --bibc_groups. Its the two groups of nodes to calculate BiBC/RBC on')
 
 args = parser.parse_args()
-
-# Set command arguments as variables
-pickle_file = args.pickle
 
 if args.bibc:
     if args.bibc_groups == "node_types":
@@ -70,10 +72,13 @@ if args.PUC:
     
 if __name__ == '__main__':
 
-    # Read in the pickle file, which should already have the network saved into it
-    G = open(pickle_file, "rb")
-    G = pickle.load(G)
-
+    # Unpack the pickle
+    p = open(args.pickle, "rb")
+    p = pickle.load(p)
+    print(p)
+    G = p[0] # Graph stored in first position of pickle
+    dev_dict = p[1] # Deviation dictionary stored in second position of pickle
+    
     # Function that calculates the number of second neighbors for each node
     def second_neighbors(G,n):
         nn = []
@@ -255,54 +260,44 @@ if __name__ == '__main__':
             dF = 1
         return dF
 
-    #Extract PUC from input file
-
-    # Only if PUC flag is set, extract only the last row of the PUC file, which will be the percentage that is 
-    # calculated with create_network.R
-    if args.PUC:
-        with open(PUC_file) as csvfile:
-                readCSV = csv.reader(csvfile, delimiter = ',')
-                for row in readCSV:
-                     rho = ','.join(row)
-
-        # so many rows
-        rowrowrowurboat = rho.split("=")
-        PUC_value = rowrowrowurboat[1]
-
-    def infomap_partition(G,n_mod=0):
-        '''
-        Wrapper to make networkx graph input compatible with the infomap
-        package, which just calls wrapped C code and has an annoying API
-        (i.e. does not talk to networkx directly, does not allow arbitrary
-        hashable types as nodes, etc.)
-        '''
-        im = Infomap()
-        # make node-to-int and int-to-node dictionaries
-        j = 0
-        node_to_int = {}
-        int_to_node = {}
-        for n in G.nodes():
-            node_to_int[n] = j
-            int_to_node[j] = n
-            j += 1
-        # copy the edges into InfoMap
-        for e in G.edges():
-            im.add_link(node_to_int[e[0]],node_to_int[e[1]])
-        # now run in silent mode
-        options_string = '--silent --preferred-number-of-modules '+str(n_mod)
-        im.run(options_string)
-        # set up the node->community id dictionary
-        partition = {}
-        for node in im.tree:
-            if node.is_leaf:
-                partition[int_to_node[node.node_id]] = node.module_id - 1
-        return im.codelength,partition
+# =============================================================================
+#     def infomap_partition(G,n_mod=0):
+#         '''
+#         Wrapper to make networkx graph input compatible with the infomap
+#         package, which just calls wrapped C code and has an annoying API
+#         (i.e. does not talk to networkx directly, does not allow arbitrary
+#         hashable types as nodes, etc.)
+#         '''
+#         im = Infomap()
+#         # make node-to-int and int-to-node dictionaries
+#         j = 0
+#         node_to_int = {}
+#         int_to_node = {}
+#         for n in G.nodes():
+#             node_to_int[n] = j
+#             int_to_node[j] = n
+#             j += 1
+#         # copy the edges into InfoMap
+#         for e in G.edges():
+#             im.add_link(node_to_int[e[0]],node_to_int[e[1]])
+#         # now run in silent mode
+#         options_string = '--silent --preferred-number-of-modules '+str(n_mod)
+#         im.run(options_string)
+#         # set up the node->community id dictionary
+#         partition = {}
+#         for node in im.tree:
+#             if node.is_leaf:
+#                 partition[int_to_node[node.node_id]] = node.module_id - 1
+#         return im.codelength,partition
+# =============================================================================
 
     ################################################################################
     ######################## Calculate network properties ##########################
     ################################################################################
 
-    with open(pickle_file+"_properties.txt", "w") as file:
+    network_name = args.pickle[:-7]
+
+    with open(network_name + "_properties.txt", "w") as file:
         #------------------------------------------------#
         ###             Network properties             ###
         #------------------------------------------------#
@@ -318,18 +313,6 @@ if __name__ == '__main__':
         nedges_str = str(nx.number_of_edges(G))
         file.write("Number_of_edges\t" + nedges_str + "\n")
 
-        ### Ratio of positive to negative correlations ###
-        pos_neg_ratio_file = args.posneg
-        print(pos_neg_ratio_file)
-        #for f in pos_neg_ratio_file:
-        #    file2 = open(f).readlines()
-        #    pos_edges = file2[0]
-        #    neg_edges = file2[1]
-        #    ratio = file2[3]
-        #file.write(pos_edges)
-        #file.write(neg_edges)
-        #file.write(ratio)
-
         ### Mean degree ###
         mean_degree = str((2*nedges)/nnodes)
         file.write("Mean_degree\t" + mean_degree + "\n")
@@ -341,7 +324,7 @@ if __name__ == '__main__':
         for key,value in clust_coef.items():
             cc_holder.append(value)
         
-        file.write("Average_clustering_coefficient\t" + str(mean(cc_holder)) + "\n")
+        file.write("Average_clustering_coefficient\t" + str(round(mean(cc_holder), 5)) + "\n")
         #file.write("Average_clustering_coefficient\t" + str(nx.average_clustering(G)) + "\n")
         
         ### Mean geodesic path length ###
@@ -349,11 +332,11 @@ if __name__ == '__main__':
         gc = max(nx.connected_component_subgraphs(G), key=len)
         ASPL = nx.average_shortest_path_length(gc)
         #ASPL = ASPL + str(a) + "\t"  
-        file.write("Mean_geodesic_path_length\t" + str(ASPL) + "\n")    
+        file.write("Mean_geodesic_path_length\t" + str(round(ASPL, 5)) + "\n")    
 
         ### Giant component ###
         giant = len(max(nx.connected_component_subgraphs(G), key=len))/len(G)
-        file.write("Giant_component\t" + str(giant) + "\n")
+        file.write("Giant_component\t" + str(round(giant, 5)) + "\n")
 
         ### Number of components ###
         ncc = str(nx.number_connected_components(G))
@@ -371,7 +354,7 @@ if __name__ == '__main__':
                 FC_node = (max_degree - G.degree[i])/((nnodes - 1) * (nnodes - 2))
                 FC_list.append(FC_node)
             freeman_cent = sum(FC_list)
-            file.write("Freeman_centralization\t" + str(freeman_cent) + "\n")    
+            file.write("Freeman_centralization\t" + str(round(freeman_cent, 5)) + "\n")    
         
         else:
             file.write("Freeman_centralization\tnan \n")    
@@ -381,31 +364,26 @@ if __name__ == '__main__':
         num_holder = []
         for key,value in closeness_cent.items():
             num_holder.append(value)
-        mean_closeness_cent = str(mean(num_holder))
-        file.write("Mean_closeness_centrality\t" + mean_closeness_cent + "\n")
+        mean_closeness_cent = mean(num_holder)
+        file.write("Mean_closeness_centrality\t" + str(round(mean_closeness_cent, 5)) + "\n")
         
         ### Modularity ###
         p = community_louvain.best_partition(G, random_state=1, randomize = False)
-        Q = str(community_louvain.modularity(p,G))
+        Q = community_louvain.modularity(p,G)
         print("Modularity of best partition of graph: ", str(Q))
-        file.write("Modularity\t" + Q + "\n")
+        file.write("Modularity\t" + str(round(Q, 5)) + "\n")
 
         ### Median comp size over total number of nodes ###
         med_list = []
         for g in nx.connected_component_subgraphs(G):
             med_list.append(nx.number_of_nodes(g))
-        med_over_nnodes = str(median(med_list)/nnodes)
-        file.write("Median_comp_size_over_#_nodes\t" + med_over_nnodes + "\n")
+        med_over_nnodes = median(med_list)/nnodes
+        file.write("Median_comp_size_over_#_nodes\t" + str(round(med_over_nnodes, 5)) + "\n")
 
         ### Degree assortativity ###
-        degree_assortativity = str(nx.degree_assortativity_coefficient(G))
-        file.write("Degree_assortativity\t" + degree_assortativity + "\n") 
+        degree_assortativity = nx.degree_assortativity_coefficient(G)
+        file.write("Degree_assortativity\t" + str(round(degree_assortativity, 5)) + "\n") 
         
-        ### PUC (extracted from PUC-output file above) ###
-        if args.PUC:    
-            file.write("PUC\t " + str(PUC_value) + "\n")
-            file.write("\n")
-
         ### Network fragmentation ###
         '''
             Obtained from Borgatti's key player problem paper, equation 3
@@ -421,6 +399,11 @@ if __name__ == '__main__':
         F = 1 - (sum_numerator/(nnodes * (nnodes - 1)))         
         file.write("Network_fragmentation\t " + str(F) + "\n")
         file.write("\n")
+        
+        # Deviation from an ideal (PUC-compliant), complete graph
+        file.write("### Deviations from an ideal graph ###\t\n")
+        for key in sorted(dev_dict.keys(), reverse = True):
+            file.write(key + "\t" + str(dev_dict[key]) + "\n")
         
         ################################################################################
         ########################## Calculate node properties ###########################
@@ -446,20 +429,20 @@ if __name__ == '__main__':
         ### Node strength ###
         strength = ""
         for i in node_names_sort:
-            strength = strength + str(G.degree(i,weight='weight')) + "\t"
+            strength = strength + str(round(G.degree(i,weight='weight'), 5)) + "\t"
         file.write("Node_strength\t" + strength + "\n")
     
         ###   Node clustering   ###
         # checked using https://www.e-education.psu.edu/geog597i_02/node/832
         node_clust = ""
         for i in node_names_sort:
-            node_clust = node_clust + str(nx.clustering(G,i)) + "\t"  
+            node_clust = node_clust + str(round(nx.clustering(G,i), 5)) + "\t"  
         file.write("Node_clustering\t" + node_clust + "\n")    
 
         ###   Node closeness   ###
         node_close = ""
         for i in node_names_sort:
-            node_close = node_close + str(nx.closeness_centrality(G,i)) + "\t"
+            node_close = node_close + str(round(nx.closeness_centrality(G,i), 5)) + "\t"
         file.write("Node_closeness\t" + node_close + "\n")    
         
         ###   Eigenvector centrality   ###
@@ -468,7 +451,7 @@ if __name__ == '__main__':
         ecen_dict_sorted = SortedDict(ecen_dict)
         ecen = ""
         for key,value in ecen_dict_sorted.items():
-            ecen = ecen + str(value) + "\t"    
+            ecen = ecen + str(round(value, 5)) + "\t"    
         file.write("Eigenvalue_centrality\t" + ecen + "\n")
 
         ###   Betweenness centrality   ###
@@ -480,7 +463,7 @@ if __name__ == '__main__':
         bc_dict_sorted = SortedDict(bc_dict)
         bc = ""
         for key,value in bc_dict_sorted.items():
-            bc = bc + str(value) + "\t"
+            bc = bc + str(round(value, 5)) + "\t"
         file.write("Betweenness_centrality\t" + bc + "\n")
 
 
