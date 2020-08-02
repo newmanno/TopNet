@@ -4,8 +4,8 @@
 ## Table of contents
 * [General info](#general-info)
 * [Dependencies](#dependencies)
-* [import_network_data.py](#import_network_data.py)
-* [calc_network_properties.py](#calc_network_properties.py)
+* [Importing the network](#importing-the-network)
+* [Calculating topological properties](#calculating-topological-properties)
 
 ## General info
 * Author: [Nolan K Newman](http://blogs.oregonstate.edu/morgunshulzhenkolabs/members/nolan-newman/) - newmanno@oregonstate.edu
@@ -16,7 +16,7 @@
 * NetworkX (v2.2)
 * pickle (v4.0)
 
-## Importing network using import_network_data.py
+## Importing the network
 Purpose: This script takes a network file consisting of node correlations and outputs a pickled file of a networkx graph
 
 Arguments:
@@ -54,7 +54,7 @@ Outputs:
 * pickled file of the networkx graph, including each edge's abs(rho coefficient)
 * a second pickled file that includes the values needed to calculate deviation from expected
 
-## Calculating topological network properties using calc_network_properties.py
+## Calculating topological properties
 Purpose: Takes the output from import_network_data.py and performs analyses on the network
 	
 Arguments:
