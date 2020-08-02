@@ -4,8 +4,8 @@
 ## Table of contents
 * [General info](#general-info)
 * [Dependencies](#dependencies)
-* [Importing network using import_network_data.py](#Importing-network-using-import_network_data.py)
-* [Calculating topological network properties using calc_network_properties.py](#Calculating-topological-network-properties-using calc_network_properties.py)
+* [import_network_data.py](#import_network_data.py)
+* [calc_network_properties.py](#calc_network_properties.py)
 
 ## General info
 * Author: [Nolan K Newman](http://blogs.oregonstate.edu/morgunshulzhenkolabs/members/nolan-newman/) - newmanno@oregonstate.edu
