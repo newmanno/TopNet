@@ -4,11 +4,11 @@
 ## Table of contents
 * [General info](#general-info)
 * [Dependencies](#dependencies)
-* [Importing network using import_network_data.py](#import_network_data)
-* [Calculating topological network properties using calc_network_properties.py](#calc_network_properties)
+* [Importing network using import_network_data.py](#Importing-network-using-import_network_data.py)
+* [Calculating topological network properties using calc_network_properties.py](#Calculating-topological-network-properties-using calc_network_properties.py)
 
 ## General info
-* Author: [@Nolan K Newman](http://blogs.oregonstate.edu/morgunshulzhenkolabs/members/nolan-newman/) - newmanno@oregonstate.edu
+* Author: [Nolan K Newman](http://blogs.oregonstate.edu/morgunshulzhenkolabs/members/nolan-newman/) - newmanno@oregonstate.edu
 * Date: 8/2/2020
 * Created with Python v3.5.3
 
@@ -74,12 +74,12 @@ Example input command:
 	
 Example node mapping file (only required if BiBC is being calculated based on pre-defined groups (i.e. genes and microbiota):
 * The input is a **CSV** file with **no header**, in the following format:
-> GAPDH, gene\
-> EGFR, gene\
-> TP53, gene\
-> ASV1, micro\
-> ASV2, micro\
-> ASV5, micro
+> GAPDH,gene\
+> EGFR,gene\
+> TP53,gene\
+> ASV1,micro\
+> ASV2,micro\
+> ASV5,micro
 
 Notes: 
 * BiBC will not be calculated if the network size is either too small or if two separate groups are identified in the network
