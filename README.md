@@ -22,13 +22,14 @@ Purpose: This script takes a network file consisting of node correlations and ou
 
 Arguments:
 > **Required**
-> * Network file (see below for format)
+> * --input	-	Network file (see below for format)
+> * --num_groups	-	Number of groups that correlations were previously calculated in (for example, if you had both a a control group and a treatment group then you would put '2' here)
 
 > **Optional**
 > * This code does not currently accept any optional arguments
 	
 Example input command:
-* python import_network_data.py <network file>
+* python import_network_data.py --input <network file> --num_groups 2
 	
 Example input file format:
 * The input is a **CSV** file with the following column format:
@@ -36,8 +37,9 @@ Example input file format:
 > * pair: gene1<==>gene2
 > * partner1: gene1
 > * partner2: gene2
-> * pval_E1: correlation pvalue in experiment 1
+> * pval_E1: correlation pvalue in Experiment 1
 > * pval_E2: correlation pvalue in Experiment 2
+>> * Note: The number of pvalue columns determines which number you use for '--num_groups'
 > * comb_pval: Fisher's combined pvalue across both experiments
 > * comb_rho: combined rho coefficient across both experiments
 > * comb_FDR: FDR calculated off the combined pvalue
@@ -53,7 +55,6 @@ Example input file format:
 
 Outputs:
 * pickled file of the networkx graph, including each edge's abs(rho coefficient)
-* a second pickled file that includes the values needed to calculate deviation from expected
 
 ## Calculating topological properties
 Purpose: Takes the output from import_network_data.py and performs analyses on the network
