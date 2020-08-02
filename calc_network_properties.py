@@ -64,12 +64,10 @@ if args.bibc:
         node_type2 = args.node_groups[1]
     elif args.bibc_groups == "modularity":
         bibc_choice = "modularity"
+        
     bibc_calc_type = args.bibc_calc_type
 
 
-if args.PUC:
-    PUC_file = args.PUC_file
-    
 if __name__ == '__main__':
 
     # Unpack the pickle

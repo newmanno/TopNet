@@ -1,5 +1,5 @@
 # TopNet: A network topology analysis program written using NetworkX
-> This network analysis pipeline takes a user-submitted network and calculates topological properties of the network.
+> This network analysis pipeline takes a user-submitted network and calculates topological properties of the network. The scripts in this pipeline are written to be used in conjunction with another pipeline that was used to create the network based off various statistical thresholds. Users can still use the pipeline proposed here so long as the network file is in the proper format (examples have been included).
 
 ## Table of contents
 * [General info](#general-info)

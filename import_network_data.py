@@ -18,6 +18,7 @@ See README file for file input format
 ###################################################################################
 
 # import the io and networkx module
+import argparse
 import csv
 import numpy as np 
 import pickle
@@ -39,10 +40,19 @@ class dictionary(dict):
 
 corr_dict = dictionary()
 fc = {}
-puc = {}
 
-net_file = sys.argv[1]
-net_file_trimmed = net_file[:-4] # trim the ".csv" or ".txt" from the input file string
+parser = argparse.ArgumentParser(description='Example: python dev_from_expected --input <network file> --num_groups <number of groups> \n\n See README.md for more info\n\n')
+parser.add_argument("--input", help = 'Network file (see README.md for example)')
+parser.add_argument("--num_groups", help = 'Number of groups correlations were initially performed in')
+
+args = parser.parse_args()
+
+if (args.input != '') and (args.num_groups != ''):
+    net_file = args.input
+    net_file_trimmed = net_file[:-4] # trim the ".csv" or ".txt" from the input file string   
+    groups = int(args.num_groups)
+else:
+    raise Exception("Error: please provide both a network file and the number of groups correlations were performed in. See --help for more information.")
 
 # Counters for puc calculation
 puc_compliant = 0
@@ -60,14 +70,19 @@ with open(net_file) as csvfile:
             list_to_tuple = tuple(nodes)
             corr_dict.add(list_to_tuple,row[3:len(row)])
             
-            # Find FC direction of each node (for calculating deviation from expected later on)
-            fc[row[1]] = row[13]
-            fc[row[2]] = row[14]
+            fc_node1_column = 11 + groups
+            fc_node2_column = 12 + groups
+            
+            # Find FC direction of each node
+            fc[row[1]] = row[fc_node1_column].strip()
+            fc[row[2]] = row[fc_node2_column].strip()
             
             # Is each edge PUC-compliant?
-            if row[16] == str(1):
+            puc_col = 14 + groups
+            
+            if row[puc_col].strip() == str(1):
                 puc_compliant += 1
-            elif row[16] == str(-1):
+            elif row[puc_col].strip() == str(-1):
                 puc_noncompliant += 1
             
         else:
@@ -113,17 +128,19 @@ pickle_out = open(net_file_trimmed + ".pickle", "wb")
  ##################### Calculate deviation from ideal #########################
 ################################################################################
 # Get a dictionary of all correlation directions and count all positive and negative edges in observed network
+rho_column = 7 + groups
 pos_corr = 0 # counter for the number of positive edges
 neg_corr = 0 # counter for the number of negative edges
+
 for key,value in corr_dict.items():
     try:    
-        if value[9] == '1':
+        if str(value[rho_column].strip()) == '1':
             pos_corr += 1
-        elif value[9] == '-1':
+        elif str(value[rho_column].strip()) == '-1':
             neg_corr += 1
     except:
         print("ERROR: an incorrect value was supplied for correlation directions. Aborting.")         
-     
+    
 nedges = pos_corr + neg_corr       
 
 # Count the number of positive and negative nodes       
@@ -156,7 +173,11 @@ expec_edge_node_ratio = expec_total / total_nodes
 # Find the ratio of positive:negative edges (and vice versa) in a full graph
 ideal_ratio_posneg = expec_pos/expec_neg
 ideal_ratio_negpos = expec_neg/expec_pos
-           
+
+# Find the ratio of positive:negative edges (and vice versa) in a complete graph
+ideal_ratio_posneg = expec_pos/expec_neg
+ideal_ratio_negpos = expec_neg/expec_pos
+
 #Calculate the non-normalized deviation from the expected (full) graph
 dev_posneg = obs_posneg_ratio/ideal_ratio_posneg
 dev_negpos = obs_negpos_ratio/ideal_ratio_negpos
@@ -172,10 +193,10 @@ dens_dev = (abs(obs_edge_node_ratio - expec_edge_node_ratio)) / expec_edge_node_
 puc = puc_noncompliant / nx.number_of_edges(G)
 
 dev_dict = {}
-dev_dict['OBSERVED_number_positive_nodes'] = pos_nodes
-dev_dict['OBSERVED_number_negative_nodes'] = neg_nodes
-dev_dict['OBSERVED_number_positive_edges'] = pos_corr
-dev_dict['OBSERVED_number_negative_edges'] = neg_corr
+dev_dict['OBSERVED_number_nodes_positive'] = pos_nodes
+dev_dict['OBSERVED_number_nodes_negative'] = neg_nodes
+dev_dict['OBSERVED_number_edges_positive'] = pos_corr
+dev_dict['OBSERVED_number_edges_negative'] = neg_corr
 dev_dict['OBSERVED_ratio_pos_to_neg_nodes'] = round(obs_posneg_node_ratio, 2)
 dev_dict['OBSERVED_ratio_neg_to_pos_nodes'] = round(obs_negpos_node_ratio, 2)
 dev_dict['OBSERVED_edge_node_ratio'] = round(obs_edge_node_ratio, 2)
@@ -185,6 +206,9 @@ dev_dict['IDEAL_total_number_edges_full_graph'] = expec_total
 dev_dict['IDEAL_number_positive_edges_full_graph'] = expec_pos
 dev_dict['IDEAL_number_negative_edges_full_graph'] = expec_neg
 dev_dict['IDEAL_density_full_graph'] = round(expec_edge_node_ratio, 2)
+dev_dict['IDEAL_ratio_pos_to_neg_edges'] = round(ideal_ratio_posneg, 2)
+dev_dict['IDEAL_ratio_neg_to_pos_edges'] = round(ideal_ratio_negpos, 2)
+
 dev_dict['DEVIATION_posneg_deviation_nonnormalized'] = round(dev_posneg, 2)
 dev_dict['DEVIATION_negpos_deviation_nonnormalized'] = round(dev_negpos, 2)
 dev_dict['DEVIATION_posneg_deviation_normalized'] = round(dev_norm_posneg, 2)
