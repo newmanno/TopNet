@@ -74,8 +74,7 @@ Arguments:
 Example input command:
 > python calc_network_properties.py <pickled network file> --frag --bibc --bibc_groups node_types --bibc_calc_type bibc --node_map /path/to/mapping/file.csv --node_groups gene micro
 	
-Example node mapping file (only required if BiBC is being calculated based on pre-defined groups (i.e. genes and microbiota):
-* The input is a **CSV** file with **no header**, in the following format:
+Example node mapping file (only required if BiBC is being calculated based on pre-defined groups (i.e. genes and microbiota). The input is a **CSV** file with **no header**, in the following format:
 > GAPDH,gene\
 > EGFR,gene\
 > TP53,gene\
