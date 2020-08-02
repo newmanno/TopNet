@@ -66,10 +66,11 @@ Arguments:
 > * --bibc	-	Flag; Do you want to compute BiBC? (Significantly increases run-time)
 > * --bibc_groups	-	choices are 'node_types' or 'modularity'; What to compute BiBC on, either distinct groups or on the two most modular regions of the network
 > * --bibc_calc_type	-	choices are 'rbc' or 'bibc'; Would you like to normalize based on amount of nodes in each group (rbc) or not (bibc)?
-> * --node_map	-	Required if node_types is specified for --bibc_groups. CSV of nodes and their types (i.e. otu, pheno, gene, etc.)		--node_groups	-	Required if node_types is specified for --bibc_groups. Its the two groups of nodes to calculate BiBC/RBC on
+> * --node_map	-	Required if node_types is specified for --bibc_groups. CSV of nodes and their types (i.e. otu, pheno, gene, etc.)		
+> * --node_groups	-	Required if node_types is specified for --bibc_groups. Its the two groups of nodes to calculate BiBC/RBC on
 	
 Example input command:
-* python import_network_data.py <network file>
+> python calc_network_properties.py <pickled network file> --frag --bibc --bibc_groups node_types --bibc_calc_type bibc --node_map /path/to/mapping/file.csv --node_groups gene micro
 	
 Example node mapping file (only required if BiBC is being calculated based on pre-defined groups (i.e. genes and microbiota):
 * The input is a **CSV** file with **no header**, in the following format:
