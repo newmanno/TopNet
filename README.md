@@ -59,24 +59,24 @@ Description:
 	This script takes the output of import_network_data.py, which is a pickled network file containing each node of the network and its associated rho coefficient (or rather the absolute value of its rho coefficient). It will calculate the following:
 	
 	Network properties:
-		* Number of nodes in the network
-		* Number of edges in the network
-		* Ratio of positive to negative correlations
-		* Mean degree (2 * # edges / # nodes)
-		* Average clustering coefficient
-		* Average path length
-		* Giant component size (percent of network that is the giant component)
-		* Number of connected components
-		* Freeman centrality
-		* Mean closeness centrality
-		* Modularity
-		* Median component size over the total number of nodes
-		* Degree assortativity
-		* Proportion of unexpected correlations (PUC): See here https://biologydirect.biomedcentral.com/articles/10.1186/s13062-016-0155-0
-		* Network fragmentation
-		* Number of expected correlations 
-		* Number of unexpected correlations
-		* PUC
+	* Number of nodes in the network
+	* Number of edges in the network
+	* Ratio of positive to negative correlations
+	* Mean degree (2 * # edges / # nodes)
+	* Average clustering coefficient
+	* Average path length
+	* Giant component size (percent of network that is the giant component)
+	* Number of connected components
+	* Freeman centrality
+	* Mean closeness centrality
+	* Modularity
+	* Median component size over the total number of nodes
+	* Degree assortativity
+	* Proportion of unexpected correlations (PUC): See here https://biologydirect.biomedcentral.com/articles/10.1186/s13062-016-0155-0
+	* Network fragmentation
+	* Number of expected correlations 
+	* Number of unexpected correlations
+	* PUC
 
 	Node properties:
 		* Degree
