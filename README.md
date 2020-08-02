@@ -89,16 +89,15 @@ Description:
 		* Bipartite betweenness centrality (BiBC): See here https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4415676/
 		
 Arguments:
-	Required:
-		* Pickled network file (output of import_network_data.py)
-		
-	Optional
-		--frag	-	Flag; Do you want to compute node fragmentation centrality? (Significantly increases run-time)
-		--bibc	-	Flag; Do you want to compute BiBC? (Significantly increases run-time)
-		--bibc_groups	-	choices are 'node_types' or 'modularity'; What to compute BiBC on, either distinct groups or on the two most modular regions of the network
-		--bibc_calc_type	-	choices are 'rbc' or 'bibc'; Would you like to normalize based on amount of nodes in each group (rbc) or not (bibc)?
-		--node_map	-	Required if node_types is specified for --bibc_groups. CSV of nodes and their types (i.e. otu, pheno, gene, etc.)
-		--node_groups	-	Required if node_types is specified for --bibc_groups. Its the two groups of nodes to calculate BiBC/RBC on
+Required:
+	* Pickled network file (output of import_network_data.py)
+	
+Optional
+	--frag	-	Flag; Do you want to compute node fragmentation centrality? (Significantly increases run-time)
+	--bibc	-	Flag; Do you want to compute BiBC? (Significantly increases run-time)
+	--bibc_groups	-	choices are 'node_types' or 'modularity'; What to compute BiBC on, either distinct groups or on the two most modular regions of the network
+	--bibc_calc_type	-	choices are 'rbc' or 'bibc'; Would you like to normalize based on amount of nodes in each group (rbc) or not (bibc)?
+	--node_map	-	Required if node_types is specified for --bibc_groups. CSV of nodes and their types (i.e. otu, pheno, gene, etc.)		--node_groups	-	Required if node_types is specified for --bibc_groups. Its the two groups of nodes to calculate BiBC/RBC on
 
 Notes: 
 	BiBC will not be calculated if the network size is either too small or if two separate groups are identified in the network
@@ -112,7 +111,7 @@ Example file:
 		ASV2, micro
 		ASV5, micro
 
-			* Where 'gene' and 'micro' would be the arguments used for node_groups. No headers are used for this file.
+* Where 'gene' and 'micro' would be the arguments used for node_groups. No headers are used for this file.
  
 	
 	
