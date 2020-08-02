@@ -15,9 +15,10 @@
 ## Dependencies
 * NetworkX (v2.2)
 * pickle (v4.0)
+* Numpy (v1.16.4
 
 ## Importing the network
-Purpose: This script takes a network file consisting of node correlations and outputs a pickled file of a networkx graph
+Purpose: This script takes a network file consisting of node correlations and outputs a pickled file of a NetworkX graph
 
 Arguments:
 > **Required**
@@ -32,7 +33,7 @@ Example input command:
 Example input file format:
 * The input is a **CSV** file with the following column format:
 
-> * pair: gene1 <==> gene2
+> * pair: gene1<==>gene2
 > * partner1: gene1
 > * partner2: gene2
 > * pval_E1: correlation pvalue in experiment 1
