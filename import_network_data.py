@@ -58,6 +58,8 @@ else:
 puc_compliant = 0
 puc_noncompliant = 0
 
+row_count = 0
+
 # import specified file into python
 with open(net_file) as csvfile:
     file = csv.reader(csvfile, delimiter = ',')
@@ -65,28 +67,36 @@ with open(net_file) as csvfile:
 
         # Check if there are any NAs in the correlation column and if not then add the edge to the dictionary
         # The keys are nodes that make up the edge and values are a list of parameters (pval, comb pval, rho, etc.)        
-        if row[12] != 'NA':
-            nodes = row[1:3]
-            list_to_tuple = tuple(nodes)
-            corr_dict.add(list_to_tuple,row[3:len(row)])
+        #if row[12] != 'NA':
             
-            fc_node1_column = 11 + groups
-            fc_node2_column = 12 + groups
+        # Take the index of the source and target node in the header of the file
+        if row_count == 0: 
+            p1 = int(row.index('partner1'))
+            p2 = int(row.index('partner2')) + 1
+        
+        nodes = row[p1:p2]
+        list_to_tuple = tuple(nodes)
+        corr_dict.add(list_to_tuple,row[3:len(row)])
+        
+        fc_node1_column = 11 + groups
+        fc_node2_column = 12 + groups
+        
+        # Find FC direction of each node
+        fc[row[1]] = row[fc_node1_column].strip()
+        fc[row[2]] = row[fc_node2_column].strip()
+        
+        # Is each edge PUC-compliant?
+        puc_col = 14 + groups
+        
+        if row[puc_col].strip() == str(1):
+            puc_compliant += 1
+        elif row[puc_col].strip() == str(-1):
+            puc_noncompliant += 1
             
-            # Find FC direction of each node
-            fc[row[1]] = row[fc_node1_column].strip()
-            fc[row[2]] = row[fc_node2_column].strip()
-            
-            # Is each edge PUC-compliant?
-            puc_col = 14 + groups
-            
-            if row[puc_col].strip() == str(1):
-                puc_compliant += 1
-            elif row[puc_col].strip() == str(-1):
-                puc_noncompliant += 1
-            
-        else:
-            print("An NA was found for a correlation. Continuing anyways but omitting this correlation.")
+        #else:
+        #    print("An NA was found for a correlation. Continuing anyways but omitting this correlation.")
+
+        row_count += 1
 
     csvfile.close()
 
@@ -118,8 +128,8 @@ for key,value in corr_dict.items():
     G.add_edge(key[0],key[1],weight = abs(float(value[3])))
     print(key[0],"\t",key[1],"\t",abs(float(value[3])))        
 
-print("Strength of each node (sum of rhos)")
-print(G.degree(weight='weight'))
+#print("Strength of each node (sum of rhos)")
+#print(G.degree(weight='weight'))
 
 # Save to picklke
 pickle_out = open(net_file_trimmed + ".pickle", "wb")
