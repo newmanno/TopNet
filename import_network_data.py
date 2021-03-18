@@ -17,7 +17,7 @@ See README file for file input format
  ##################### import network and make networkx object ###################
 ###################################################################################
 
-# import the io and networkx module
+# import the io and networkx module for use later
 import argparse
 import csv
 import numpy as np 
